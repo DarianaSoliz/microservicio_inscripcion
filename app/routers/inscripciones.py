@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.core.database import get_db
+from app.core.database_sync import get_db
 from app.services import InscripcionService, PeriodoAcademicoService
 from app.schemas import (
     InscripcionCreate, InscripcionUpdate, InscripcionResponse, InscripcionSimpleResponse,
@@ -55,7 +55,7 @@ async def create_inscripcion(
             description="Crea una nueva inscripción de forma síncrona. Solo para casos especiales donde se requiere respuesta inmediata.")
 async def create_inscripcion_sync(
     inscripcion_data: InscripcionCreate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Crea una nueva inscripción de forma síncrona.
@@ -74,7 +74,7 @@ async def create_inscripcion_sync(
            description="Obtiene los detalles de una inscripción específica")
 async def get_inscripcion(
     codigo_inscripcion: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     inscripcion = await service.get_inscripcion_by_codigo(codigo_inscripcion)
@@ -89,7 +89,7 @@ async def get_inscripcion(
            description="Obtiene todas las inscripciones de un estudiante específico")
 async def get_inscripciones_estudiante(
     registro_academico: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     inscripciones = await service.get_inscripciones_by_estudiante(registro_academico)
@@ -100,7 +100,7 @@ async def get_inscripciones_estudiante(
            description="Obtiene todas las inscripciones de un período académico específico")
 async def get_inscripciones_periodo(
     codigo_periodo: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     inscripciones = await service.get_inscripciones_by_periodo(codigo_periodo)
@@ -113,7 +113,7 @@ async def get_inscripciones_periodo(
 async def update_inscripcion(
     codigo_inscripcion: str,
     inscripcion_data: InscripcionUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     inscripcion = await service.update_inscripcion(codigo_inscripcion, inscripcion_data)
@@ -132,7 +132,7 @@ async def update_inscripcion(
               description="Elimina una inscripción y todos sus detalles")
 async def delete_inscripcion(
     codigo_inscripcion: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     deleted = await service.delete_inscripcion(codigo_inscripcion)
@@ -149,7 +149,7 @@ async def delete_inscripcion(
 async def add_grupo_to_inscripcion(
     codigo_inscripcion: str,
     codigo_grupo: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     # Los errores son manejados por los exception handlers globales
@@ -164,7 +164,7 @@ async def add_grupo_to_inscripcion(
 async def remove_grupo_from_inscripcion(
     codigo_inscripcion: str,
     codigo_grupo: str,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     logger.info(f"Remover grupo {codigo_grupo} de inscripcion {codigo_inscripcion}")
@@ -185,7 +185,7 @@ async def remove_grupo_from_inscripcion(
            summary="Obtener estadísticas de inscripciones",
            description="Obtiene estadísticas generales del sistema de inscripciones")
 async def get_estadisticas_inscripcion(
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = InscripcionService(db)
     return await service.get_estadisticas_inscripcion()

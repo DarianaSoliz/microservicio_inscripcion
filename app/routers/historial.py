@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, status, Query, Request
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.core.database import get_db
+from app.core.database_sync import get_db
 from app.core.logging import get_logger
 from app.services.historial_service import HistorialAcademicoService
 from app.schemas import (
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/v1/historial", tags=["Historial Académico"])
 async def create_historial(
     historial_data: HistorialAcademicoCreate,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Crea un nuevo registro en el historial académico.
@@ -68,7 +68,7 @@ async def create_historial(
 async def get_historial_by_id(
     id_historial: int,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Obtiene un registro del historial académico por su ID"""
     logger.debug(
@@ -112,7 +112,7 @@ async def get_historial_estudiante(
     request: Request,
     codigo_periodo: Optional[str] = Query(None, description="Filtrar por período específico"),
     estado: Optional[str] = Query(None, description="Filtrar por estado (APROBADA, REPROBADA, RETIRADA)"),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Obtiene el historial académico completo de un estudiante.
@@ -154,7 +154,7 @@ async def get_historial_estudiante(
 async def get_historial_por_periodo(
     registro_academico: str,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Obtiene el historial académico agrupado por períodos académicos"""
     logger.info(
@@ -186,7 +186,7 @@ async def get_historial_por_periodo(
 async def get_resumen_academico(
     registro_academico: str,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Obtiene un resumen estadístico del desempeño académico del estudiante.
@@ -228,7 +228,7 @@ async def get_materias_por_estado(
     registro_academico: str,
     estado: str,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Obtiene las materias de un estudiante filtradas por estado específico.
@@ -270,7 +270,7 @@ async def update_historial(
     id_historial: int,
     historial_data: HistorialAcademicoUpdate,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Actualiza un registro del historial académico.
@@ -310,7 +310,7 @@ async def update_historial(
 async def delete_historial(
     id_historial: int,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Elimina un registro del historial académico.
@@ -355,7 +355,7 @@ async def get_reporte_materia(
     sigla_materia: str,
     request: Request,
     codigo_periodo: Optional[str] = Query(None, description="Filtrar por período"),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Obtiene un reporte de estudiantes que han cursado una materia específica.
@@ -389,7 +389,7 @@ async def get_reporte_materia(
 async def get_reporte_periodo(
     codigo_periodo: str,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """
     Obtiene estadísticas generales de rendimiento académico para un período.

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from typing import List
-from app.core.database import get_db
+from app.core.database_sync import get_db
 from app.services import PeriodoAcademicoService
 from app.schemas import (
     PeriodoAcademicoCreate, PeriodoAcademicoResponse,
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/periodos", tags=["Períodos Académicos"])
             description="Crea un nuevo período académico")
 async def create_periodo(
     periodo_data: PeriodoAcademicoCreate,
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = PeriodoAcademicoService(db)
     try:
@@ -34,7 +34,7 @@ async def create_periodo(
            summary="Obtener período activo",
            description="Obtiene el período académico actualmente activo")
 async def get_periodo_activo(
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = PeriodoAcademicoService(db)
     periodo = await service.get_periodo_activo()
@@ -52,7 +52,7 @@ async def get_periodo_activo(
            summary="Obtener todos los períodos",
            description="Obtiene todos los períodos académicos registrados")
 async def get_all_periodos(
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     service = PeriodoAcademicoService(db)
     return await service.get_all_periodos()

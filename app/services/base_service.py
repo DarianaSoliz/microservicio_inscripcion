@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy import select, func, and_, or_
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
@@ -36,7 +36,7 @@ logger = get_logger(__name__)
 
 class InscripcionService:
     
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: Session):
         self.db = db
     
     async def create_inscripcion(self, inscripcion_data: InscripcionCreate) -> Inscripcion:
@@ -492,7 +492,7 @@ class InscripcionService:
 
 class PeriodoAcademicoService:
     
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: Session):
         self.db = db
     
     async def create_periodo(self, periodo_data: PeriodoAcademicoCreate) -> PeriodoAcademico:
