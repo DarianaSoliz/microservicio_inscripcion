@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, Date, ForeignKey, DateTime, Boolean, ARRAY, Time, Numeric, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database_sync import Base
+from app.core.database import Base
 from datetime import date, datetime
 
 class Carrera(Base):

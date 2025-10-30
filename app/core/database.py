@@ -3,9 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import NullPool
 from app.core.config import settings
 
-# Create async engine
+# Create async engine with psycopg (compatible with Python 3.13)
 engine = create_async_engine(
-    settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
+    settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
     poolclass=NullPool,
     echo=settings.DEBUG,
     future=True,

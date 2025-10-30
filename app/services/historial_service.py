@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncAsyncSession
 from sqlalchemy import select, func, and_, desc, distinct
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
@@ -27,7 +27,7 @@ ESTADOS_VALIDOS = ['APROBADA', 'REPROBADA', 'RETIRADA']
 
 
 class HistorialAcademicoService:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
         self.logger = get_logger(f"{__name__}.HistorialAcademicoService")
 

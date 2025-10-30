@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import redis
@@ -10,7 +10,7 @@ from datetime import datetime
 from celery import current_app
 from celery.result import AsyncResult
 
-from app.core.database_sync import get_db
+from app.core.database import get_db
 from app.core.config import settings
 from app.core.celery_app import celery_app
 # Enhanced imports for new functionality
@@ -99,7 +99,7 @@ class WorkerControlRequest(BaseModel):
     description="Encola una tarea para crear una inscripción y retorna el task_id para monitoreo",
 )
 async def create_inscription_async(
-    inscription_data: InscripcionCreate, db: Session = Depends(get_db)
+    inscription_data: InscripcionCreate, db: AsyncSession = Depends(get_db)
 ):
     """Crear inscripción de forma asíncrona usando Celery"""
     try:
@@ -220,7 +220,7 @@ def create_inscription_async_by_groups(
     description="Encola una tarea para crear múltiples inscripciones en lote",
 )
 async def create_bulk_inscriptions_async(
-    inscriptions_data: List[InscripcionCreate], db: Session = Depends(get_db)
+    inscriptions_data: List[InscripcionCreate], db: AsyncSession = Depends(get_db)
 ):
     """Crear múltiples inscripciones de forma asíncrona"""
     try:

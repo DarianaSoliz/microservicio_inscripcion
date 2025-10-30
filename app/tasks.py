@@ -121,7 +121,7 @@ from app.exceptions import (
 
 # Configurar motor de base de datos para las tareas
 engine = create_async_engine(
-    settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
+    settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
     pool_pre_ping=True
 )
 
@@ -227,7 +227,7 @@ async def _create_inscription_async(inscription_data: Dict[str, Any]) -> Dict[st
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
     from app.core.config import settings
     engine = create_async_engine(
-        settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
+        settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
         pool_pre_ping=True
     )
     AsyncSessionLocal = async_sessionmaker(
@@ -709,7 +709,7 @@ async def _add_group_to_inscription_async(inscription_data: Dict[str, Any], grup
     from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
     from app.core.config import settings
     engine = create_async_engine(
-        settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
+        settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
         pool_pre_ping=True
     )
     AsyncSessionLocal = async_sessionmaker(
