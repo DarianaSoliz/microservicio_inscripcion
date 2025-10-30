@@ -3,11 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import SQLAlchemyError
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
 import logging
 
 from app.core.config import settings
-from app.core.database import engine, Base
+from app.core.database_sync import engine, Base
 from app.core.logging import configure_uvicorn_logging, get_logger
 from app.middleware.logging_middleware import LoggingMiddleware, SecurityLoggingMiddleware, DatabaseLoggingMiddleware
 from app.routers import inscripciones, periodos, queue, historial
@@ -24,34 +24,13 @@ from app.exception_handlers import (
 configure_uvicorn_logging()
 logger = get_logger(__name__)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Manejo del ciclo de vida de la aplicación"""
-    logger.info("🚀 Iniciando microservicio de registro académico...")
-    
-    try:
-        # Crear tablas si no existen (en producción usar Alembic)
-        async with engine.begin() as conn:
-            # await conn.run_sync(Base.metadata.create_all)
-            logger.info("✅ Base de datos configurada correctamente")
-    except Exception as e:
-        logger.error(f"❌ Error configurando base de datos: {e}")
-    
-    logger.info("✅ Microservicio iniciado correctamente")
-    yield
-    
-    logger.info("🔄 Cerrando microservicio de registro académico...")
-    await engine.dispose()
-    logger.info("✅ Microservicio cerrado correctamente")
-
-# Crear aplicación FastAPI
+# Crear aplicación FastAPI (sin lifespan por compatibilidad)
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
-    description="Microservicio asíncrono para la gestión de inscripciones académicas con logging avanzado",
+    description="Microservicio para la gestión de inscripciones académicas con logging avanzado",
     docs_url="/docs",
-    redoc_url="/redoc",
-    lifespan=lifespan
+    redoc_url="/redoc"
 )
 
 # ===== REGISTRAR MIDDLEWARES =====
@@ -101,13 +80,14 @@ app.include_router(queue.router, prefix="/api/v1")
 app.include_router(historial.router)
 
 @app.get("/")
-async def root():
+def root():
     """Endpoint raíz del microservicio"""
     logger.info("Endpoint raíz consultado")
     return {
         "message": "Microservicio de Registro Académico",
         "version": settings.VERSION,
         "status": "running",
+        "mode": "synchronous",
         "features": [
             "Gestión de inscripciones",
             "Historial académico",
@@ -119,7 +99,7 @@ async def root():
     }
 
 @app.get("/health")
-async def health_check():
+def health_check():
     """Health check endpoint con verificación completa"""
     health_logger = get_logger("app.health")
     
@@ -127,14 +107,15 @@ async def health_check():
         health_logger.debug("Iniciando health check")
         
         # Verificar conexión a base de datos
-        async with engine.begin() as conn:
-            result = await conn.exec_driver_sql("SELECT 1")
+        with engine.begin() as conn:
+            result = conn.exec_driver_sql("SELECT 1")
             health_logger.debug("Conexión a base de datos verificada")
         
         health_status = {
             "status": "healthy",
             "database": "connected",
             "version": settings.VERSION,
+            "mode": "synchronous",
             "timestamp": "2024-10-28T00:00:00Z",
             "components": {
                 "database": "healthy",
@@ -161,7 +142,7 @@ async def health_check():
         )
 
 @app.get("/metrics")
-async def metrics():
+def metrics():
     """Endpoint para métricas básicas del sistema"""
     metrics_logger = get_logger("app.metrics")
     
@@ -171,7 +152,8 @@ async def metrics():
             "uptime": "N/A",  # Implementar cálculo de uptime
             "requests_total": "N/A",  # Implementar contador de requests
             "errors_total": "N/A",  # Implementar contador de errores
-            "database_connections": "N/A"  # Implementar métricas de BD
+            "database_connections": "N/A",  # Implementar métricas de BD
+            "mode": "synchronous"
         }
         
         metrics_logger.debug("Métricas consultadas")
@@ -181,6 +163,26 @@ async def metrics():
         metrics_logger.error(f"Error al obtener métricas: {e}")
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
+# Inicialización startup/shutdown events
+@app.on_event("startup")
+def startup_event():
+    """Evento de inicio"""
+    logger.info("🚀 Iniciando microservicio de registro académico...")
+    try:
+        with engine.begin() as conn:
+            conn.exec_driver_sql("SELECT 1")
+            logger.info("✅ Base de datos configurada correctamente")
+    except Exception as e:
+        logger.error(f"❌ Error configurando base de datos: {e}")
+    logger.info("✅ Microservicio iniciado correctamente")
+
+@app.on_event("shutdown")
+def shutdown_event():
+    """Evento de cierre"""
+    logger.info("🔄 Cerrando microservicio de registro académico...")
+    engine.dispose()
+    logger.info("✅ Microservicio cerrado correctamente")
+
 if __name__ == "__main__":
     import uvicorn
     
@@ -189,7 +191,7 @@ if __name__ == "__main__":
     startup_logger.info("🔥 Iniciando servidor de desarrollo...")
     
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.DEBUG,

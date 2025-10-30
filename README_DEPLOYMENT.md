@@ -2,9 +2,20 @@
 
 Este proyecto ha sido adaptado para ser completamente compatible con Python 3.13 en Fedora.
 
-## 🚀 Deployment rápido
+## 🚀 Opciones de ejecución
 
-### 1. En el servidor Fedora:
+### Opción 1: Ejecución directa con uvicorn
+
+```bash
+# Método rápido
+chmod +x run_server.sh
+./run_server.sh
+
+# O manualmente
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
+```
+
+### Opción 2: Deployment completo con servicios
 
 ```bash
 # Clonar repositorio
@@ -51,10 +62,11 @@ journalctl -u inscription-api -f
 - **requirements-fedora.txt**: Dependencias compatibles
 
 ### URLs disponibles:
-- API: http://servidor:8000
-- Docs: http://servidor:8000/docs
-- Health: http://servidor:8000/health
-- Flower: http://servidor:8000/flower
+- **Opción 1 (uvicorn directo)**: http://servidor:8003
+- **Opción 2 (deployment completo)**: http://servidor:8000
+- Docs: http://servidor:PUERTO/docs
+- Health: http://servidor:PUERTO/health
+- Flower (solo opción 2): http://servidor:8000/flower
 
 ## 🔍 Troubleshooting:
 
