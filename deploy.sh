@@ -6,7 +6,7 @@ set -e
 echo "🚀 Iniciando deployment del microservicio de inscripciones..."
 
 # Variables
-PROJECT_DIR="/root/registro_microservivio"
+PROJECT_DIR="/root/microservicio_inscripcion"
 VENV_DIR="$PROJECT_DIR/.venv"
 
 # Colores para output
@@ -35,8 +35,7 @@ git pull origin master
 # 2. Activar entorno virtual e instalar dependencias
 print_status "Instalando dependencias..."
 source $VENV_DIR/bin/activate
-pip install -r requirements.txt
-pip install psycopg2-binary gunicorn
+pip install -r requirements-fedora.txt
 
 # 3. Copiar archivos de configuración
 print_status "Configurando servicios systemd..."

@@ -85,26 +85,21 @@ fi
 
 # Verificar base de datos
 print_header "Estado de Base de Datos"
-cd /root/registro_microservivio
+cd /root/microservicio_inscripcion
 source .venv/bin/activate
 
 python3 -c "
-import asyncio
 import sys
-from app.core.database import engine
+from app.core.database_sync import engine
 
-async def test_db():
-    try:
-        async with engine.begin() as conn:
-            result = await conn.exec_driver_sql('SELECT 1')
-            print('✅ Base de datos conectada')
-            return True
-    except Exception as e:
-        print(f'❌ Error de base de datos: {e}')
-        return False
-
-result = asyncio.run(test_db())
-sys.exit(0 if result else 1)
+try:
+    with engine.begin() as conn:
+        result = conn.exec_driver_sql('SELECT 1')
+        print('✅ Base de datos conectada')
+        sys.exit(0)
+except Exception as e:
+    print(f'❌ Error de base de datos: {e}')
+    sys.exit(1)
 "
 
 # Verificar carga del sistema

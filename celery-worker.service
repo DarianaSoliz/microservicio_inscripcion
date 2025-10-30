@@ -6,10 +6,10 @@ After=network.target redis.service
 Type=forking
 User=root
 Group=root
-WorkingDirectory=/root/registro_microservivio
-Environment=PATH=/root/registro_microservivio/.venv/bin
-EnvironmentFile=/root/registro_microservivio/.env
-ExecStart=/root/registro_microservivio/.venv/bin/celery -A app.core.celery_app worker --loglevel=info --concurrency=4 --pidfile=/var/run/celery/worker.pid
+WorkingDirectory=/root/microservicio_inscripcion
+Environment=PATH=/root/microservicio_inscripcion/.venv/bin
+EnvironmentFile=/root/microservicio_inscripcion/.env
+ExecStart=/root/microservicio_inscripcion/.venv/bin/celery -A app.core.celery_app worker --loglevel=info --concurrency=4 --pidfile=/var/run/celery/worker.pid
 ExecStop=/bin/kill -s TERM $MAINPID
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
