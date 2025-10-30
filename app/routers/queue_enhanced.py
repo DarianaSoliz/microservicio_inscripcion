@@ -2,7 +2,7 @@
 Enhanced queue endpoints with circuit breaker monitoring, saga status, and comprehensive metrics
 """
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import redis
@@ -12,7 +12,7 @@ from datetime import datetime
 from celery import current_app
 from celery.result import AsyncResult
 
-from app.core.database import get_db
+from app.core.database_sync import get_db
 from app.core.config import settings
 from app.core.celery_app import celery_app
 from app.core.circuit_breaker import CircuitBreakerRegistry
@@ -113,7 +113,7 @@ class IdempotencyStatsResponse(BaseModel):
 )
 async def create_inscription_async_by_groups_enhanced(
     inscription_data: InscripcionCreate, 
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db)
 ):
     """Enhanced group-by-group inscription with full fault tolerance"""
     
@@ -637,7 +637,7 @@ async def enhanced_health_check():
     description="Endpoint legacy para compatibilidad"
 )
 async def create_inscription_async_legacy(
-    inscription_data: InscripcionCreate, db: AsyncSession = Depends(get_db)
+    inscription_data: InscripcionCreate, db: Session = Depends(get_db)
 ):
     """Legacy endpoint for backward compatibility"""
     try:
