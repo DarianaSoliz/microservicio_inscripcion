@@ -1,0 +1,17 @@
+[Unit]
+Description=Flower Celery Monitoring
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/registro_microservivio
+Environment=PATH=/root/registro_microservivio/.venv/bin
+EnvironmentFile=/root/registro_microservivio/.env
+ExecStart=/root/registro_microservivio/.venv/bin/celery -A app.core.celery_app flower --port=5555
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

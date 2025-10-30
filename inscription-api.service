@@ -1,0 +1,18 @@
+[Unit]
+Description=Inscription Microservice FastAPI
+After=network.target
+
+[Service]
+Type=notify
+User=root
+Group=root
+WorkingDirectory=/root/registro_microservivio
+Environment=PATH=/root/registro_microservivio/.venv/bin
+EnvironmentFile=/root/registro_microservivio/.env
+ExecStart=/root/registro_microservivio/.venv/bin/gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

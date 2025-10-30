@@ -1,0 +1,115 @@
+services:
+  # Servicio Redis (cola y backend de Celery)
+  redis:
+    image: redis:7-alpine
+    container_name: inscription-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Servicio principal del microservicio de inscripción (FastAPI)
+  inscription-microservice:
+    build: .
+    container_name: inscription-microservice
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - microservices-network
+
+  # Workers Celery (cola "inscripciones")
+  celery-worker-1:
+    build: .
+    container_name: inscription-worker-1
+    command: celery -A app.core.celery_app worker --loglevel=info --queues=inscripciones --hostname=worker1@%h
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  celery-worker-2:
+    build: .
+    container_name: inscription-worker-2
+    command: celery -A app.core.celery_app worker --loglevel=info --queues=inscripciones --hostname=worker2@%h
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  # Worker Celery para procesos en lote
+  celery-worker-bulk:
+    build: .
+    container_name: inscription-worker-bulk
+    command: celery -A app.core.celery_app worker --loglevel=info --queues=inscripciones_bulk --hostname=worker-bulk@%h
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  # Monitor de tareas Celery (Flower)
+  flower:
+    build: .
+    container_name: inscription-flower
+    command: celery -A app.core.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+volumes:
+  redis_data:
+
+# 🔹 Red compartida (ya existe, se marca como externa)
+networks:
+  microservices-network:
+    external: true
